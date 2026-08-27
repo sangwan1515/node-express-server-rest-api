@@ -36,18 +36,26 @@ router.delete('/:messageId', (req, res) => {
 });
 
 router.put('/:messageId', (req, res) => {
-  const {
-    [req.params.messageId]: message
-  } = req.context.models.messages;
+  const messages = req.context.models.messages;
+  const hasMessage = Object.prototype.hasOwnProperty.call(messages, req.params.messageId);
+  const message = hasMessage ? messages[req.params.messageId] : undefined;
+
+  if (!message) {
+    return res.status(404).send({ error: 'Message not found' });
+  }
+
+  if (req.body.text === undefined) {
+    return res.status(400).send({ error: 'text is required' });
+  }
 
   const updatedMessage = {
     ...message,
-    text: req.body.text
+    text: req.body.text,
   };
 
-  req.context.models.messages[req.params.messageId] = updatedMessage;
+  messages[req.params.messageId] = updatedMessage;
 
   return res.send(updatedMessage);
-})
+});
 
 export default router;
